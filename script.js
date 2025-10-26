@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------
-// 1. TAILWIND CONFIG
+// 1. TAILWIND CONFIG (tumhari design ke hisaab se)
 // ------------------------------------------------------------------
 tailwind.config = {
   darkMode: "class",
@@ -10,78 +10,57 @@ tailwind.config = {
         secondary: "#f72585",
         accent: "#e0aaff",
         "background-dark": "#120c18",
-        success: "#28a745",
-        warning: "#dc3545",
       },
-      fontFamily: {
-        display: ["Poppins", "sans-serif"],
-      },
+      fontFamily: { display: ["Poppins", "sans-serif"] },
       borderRadius: { DEFAULT: "1rem" },
     },
   },
 };
 
 // ------------------------------------------------------------------
-// 2. API CONFIG (Serverless function)
+// 2. API CONFIG
 // ------------------------------------------------------------------
-const WORKER_URL = "/api/grammar"; // serverless function URL
+const WORKER_URL = "/api/grammer";
 
 // ------------------------------------------------------------------
 // 3. MAIN SCRIPT
 // ------------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   const textInput = document.getElementById("text-input");
-  const checkButton = document.querySelector("button"); // design ke hisaab se first button
-  const resultsSection = document.querySelector("div.mt-2 > p")?.parentElement; // result div wrapper
+  const checkButton = document.querySelector("button");
+  const resultsSection = document.querySelector("div.mt-2.min-h-[6rem]");
 
-  // --- Send request to Serverless Function ---
-  async function queryGrammarModel(text) {
-    resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
+  checkButton.addEventListener("click", async () => {
+    const text = textInput.value.trim();
+    if (!text) {
+      resultsSection.innerHTML = `<p class="text-slate-500">Please enter some text.</p>`;
+      return;
+    }
+
+    resultsSection.innerHTML = `<p class="text-slate-400">Checking grammar...</p>`;
     checkButton.disabled = true;
 
     try {
-      const response = await fetch(WORKER_URL, {
+      const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text })
       });
 
-      if (!response.ok) throw new Error(`Request failed: ${response.statusText}`);
+      const data = await res.json();
 
-      const data = await response.json();
-      const label = data?.[0]?.label;
-      const score = (data?.[0]?.score * 100).toFixed(2);
-
-      if (!label) throw new Error("Invalid response from model");
-
-      if (label === "LABEL_1") {
-        resultsSection.innerHTML = `
-          <p class="text-success font-semibold text-center">
-            ✅ Grammar looks perfect! (Confidence: ${score}%)
-          </p>`;
+      if (data.error) {
+        resultsSection.innerHTML = `<p class="text-warning">${data.error}</p>`;
       } else {
-        resultsSection.innerHTML = `
-          <p class="text-warning font-semibold text-center">
-            ❌ Grammar incorrect! (Confidence: ${score}%)
-          </p>`;
+        // Hugging Face model ka output usually ek array of objects hota hai
+        resultsSection.innerHTML = `<p class="text-slate-200">${data[0].generated_text || "No output"}</p>`;
       }
-    } catch (error) {
-      console.error("Error:", error);
-      resultsSection.innerHTML = `<p class="text-warning font-semibold text-center">🚫 Server connection failed. Try again later.</p>`;
+
+    } catch (err) {
+      resultsSection.innerHTML = `<p class="text-warning">Server connection failed. Try again later.</p>`;
+      console.error(err);
     } finally {
       checkButton.disabled = false;
     }
-  }
-
-  // --- Button click ---
-  if (checkButton) {
-    checkButton.addEventListener("click", () => {
-      const text = textInput.value.trim();
-      if (!text) {
-        resultsSection.innerHTML = `<p class="text-warning font-semibold text-center">⚠️ Please enter some text first.</p>`;
-        return;
-      }
-      queryGrammarModel(text);
-    });
-  }
+  });
 });
