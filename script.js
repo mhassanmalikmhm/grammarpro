@@ -29,7 +29,7 @@ tailwind.config = {
 // Leave API_KEY empty for public hosting.
 // For local use (faster response), you can paste your HF token below.
 // Example (for local only): const API_KEY = "hf_xxxxxxxxxxxxxxxxxxxxx";
-const API_KEY = "";
+const API_KEY = "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";
 
 // Hugging Face Grammar Checker model
 const GRAMMAR_MODEL_URL =
