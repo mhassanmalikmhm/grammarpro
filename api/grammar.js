@@ -1,7 +1,7 @@
 export default {
   async fetch(request) {
     const HF_URL = "https://api-inference.huggingface.co/models/abdulmatinomotoso/English_Grammar_Checker";
-    const HF_TOKEN = "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"; // apna Hugging Face token
+    const HF_TOKEN = "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"; // apna Hugging Face token
 
     try {
       let body;
