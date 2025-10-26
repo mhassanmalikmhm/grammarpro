@@ -1,25 +1,23 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") 
+    return res.status(405).json({ error: "Method not allowed" });
 
-  const text = req.body.text;
-  if (!text) return res.status(400).json({ error: "No text provided" });
+  const text = req.body.inputs; // <- change yahi
+
+  if (!text) 
+    return res.status(400).json({ error: "No input provided" });
 
   try {
-    // Wrap fetch in async function
-    const fetchGrammar = async () => {
-      const response = await fetch(
-        "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ inputs: text })
-        }
-      );
-      return await response.json();
-    };
+    const response = await fetch(
+      "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: text })
+      }
+    );
 
-    const data = await fetchGrammar();
-
+    const data = await response.json();
     res.status(200).json(data);
 
   } catch (err) {
