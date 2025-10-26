@@ -1,11 +1,9 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") 
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
-  const text = req.body.inputs; // <- change yahi
-
-  if (!text) 
-    return res.status(400).json({ error: "No input provided" });
+  const text = req.body.text || req.body.inputs; // dono check
+  if (!text) return res.status(400).json({ error: "No text provided" });
 
   try {
     const response = await fetch(
@@ -13,15 +11,14 @@ export default async function handler(req, res) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: text })
+        body: JSON.stringify({ inputs: text }) // inputs key hi Worker expect karta hai
       }
     );
 
     const data = await response.json();
-    res.status(200).json(data);
-
+    return res.status(200).json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server connection failed. Try again later." });
+    return res.status(500).json({ error: "Server connection failed. show results." });
   }
 }
