@@ -10,15 +10,15 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/abdulmatinomotoso/English_Grammar_Checker",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${HF_API_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: text })
-      }
+  "https://api-inference.huggingface.co/models/abdulmatinomotoso/English_Grammar_Checker",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${HF_API_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ inputs: text })
+  }
     );
 
     if (!response.ok) throw new Error("Hugging Face API error");
