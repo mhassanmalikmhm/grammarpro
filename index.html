@@ -127,7 +127,7 @@ document.getElementById("check-button").addEventListener("click", async () => {
     resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
 
     try {
-        const res = await fetch("/api/grammar.js", {
+        const res = await fetch("/api/grammar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ text: textInput }),
