@@ -32,6 +32,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   checkButton.addEventListener("click", async () => {
     const text = textInput.value.trim();
+
     if (!text) {
       resultsSection.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
       return;
@@ -44,18 +45,17 @@ window.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: text }) // "inputs" key important
+        body: JSON.stringify({ inputs: text }) // "inputs" key must match Worker
       });
 
       const data = await res.json();
 
-      if (data.error) {
-        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 ${data.error}</p>`;
+      // data ka structure: [{ label: "LABEL_0", score: 0.99 }, ...]
+      if (!Array.isArray(data) || !data[0]?.label) {
+        resultsSection.innerHTML = `<p class="text-warning">No output from model</p>`;
       } else {
-        const label = data?.[0]?.label;
-        if (!label) {
-          resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Invalid response from model</p>`;
-        } else if (label === "LABEL_1") {
+        const label = data[0].label;
+        if (label === "LABEL_1") {
           resultsSection.innerHTML = `
             <div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold text-center">
               ✅ Grammar looks perfect!
@@ -72,7 +72,7 @@ window.addEventListener("DOMContentLoaded", () => {
       console.error(err);
       resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;
     } finally {
-      checkButton.disabled = false;
+      checkButton.disabled = false; // ensure button is always re-enabled
     }
   });
 });
