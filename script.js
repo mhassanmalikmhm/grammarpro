@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------
-// 1. TAILWIND CONFIG (tumhari design ke hisaab se)
+// 1. TAILWIND CONFIG
 // ------------------------------------------------------------------
 tailwind.config = {
   darkMode: "class",
@@ -27,38 +27,50 @@ const WORKER_URL = "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/";
 // ------------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   const textInput = document.getElementById("text-input");
-  const checkButton = document.querySelector("button");
-  const resultsSection = document.querySelector("div.mt-2.min-h-[6rem]");
+  const checkButton = document.getElementById("check-button");
+  const resultsSection = document.getElementById("results-section");
 
   checkButton.addEventListener("click", async () => {
     const text = textInput.value.trim();
     if (!text) {
-      resultsSection.innerHTML = `<p class="text-slate-500">Please enter some text.</p>`;
+      resultsSection.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
       return;
     }
 
-    resultsSection.innerHTML = `<p class="text-slate-400">Checking grammar...</p>`;
+    resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar...</p>`;
     checkButton.disabled = true;
 
     try {
       const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ inputs: text }) // "inputs" key important
       });
 
       const data = await res.json();
 
       if (data.error) {
-        resultsSection.innerHTML = `<p class="text-warning">${data.error}</p>`;
+        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 ${data.error}</p>`;
       } else {
-        // Hugging Face model ka output usually ek array of objects hota hai
-        resultsSection.innerHTML = `<p class="text-slate-200">${data[0].generated_text || "No output"}</p>`;
+        const label = data?.[0]?.label;
+        if (!label) {
+          resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Invalid response from model</p>`;
+        } else if (label === "LABEL_1") {
+          resultsSection.innerHTML = `
+            <div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold text-center">
+              ✅ Grammar looks perfect!
+            </div>`;
+        } else {
+          resultsSection.innerHTML = `
+            <div class="p-4 bg-red-900/40 border border-red-600 rounded-xl text-red-300 font-semibold text-center">
+              ❌ Grammar incorrect!
+            </div>`;
+        }
       }
 
     } catch (err) {
-      resultsSection.innerHTML = `<p class="text-warning">Server connection failed. Try again later.</p>`;
       console.error(err);
+      resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;
     } finally {
       checkButton.disabled = false;
     }
