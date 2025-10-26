@@ -20,7 +20,7 @@ tailwind.config = {
 // ------------------------------------------------------------------
 // 2. API CONFIG
 // ------------------------------------------------------------------
-const WORKER_URL = "/api/grammer";
+const WORKER_URL = "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/";
 
 // ------------------------------------------------------------------
 // 3. MAIN SCRIPT
