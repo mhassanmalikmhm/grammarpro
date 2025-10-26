@@ -38,7 +38,7 @@
       ></textarea>
 
       <button
-        onclick="checkGrammar()"
+        id="check-button"
         class="mt-4 w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl transition duration-200"
       >
         Check Grammar
@@ -53,54 +53,48 @@
     © 2025 GrammarPro – Made with 💙 using Hugging Face
   </footer>
 
+  <!-- SCRIPT -->
   <script>
-    async function checkGrammar() {
-      const sentence = document.getElementById('sentenceInput').value.trim();
-      const resultDiv = document.getElementById('result');
-      const API_URL = "https://api-inference.huggingface.co/models/abdulmatinomotoso/English_Grammar_Checker";
-      const API_KEY = "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"; // ⚠️ apni key yahan likho
+    document.getElementById("check-button").addEventListener("click", async () => {
+      const textInput = document.getElementById("sentenceInput").value.trim();
+      const resultsSection = document.getElementById("result");
 
-      if (!sentence) {
-        resultDiv.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
+      if (!textInput) {
+        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
         return;
       }
 
-      resultDiv.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
+      resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
 
       try {
-        const response = await fetch(API_URL, {
+        const res = await fetch("/api/grammar", {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ inputs: sentence })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: textInput }),
         });
 
-        if (!response.ok) throw new Error("API Error");
-
-        const data = await response.json();
+        const data = await res.json();
         const corrected = data?.[0]?.generated_text || "No correction found.";
 
-        if (corrected.trim() === sentence.trim()) {
-          resultDiv.innerHTML = `
+        if (corrected.trim() === textInput.trim()) {
+          resultsSection.innerHTML = `
             <div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold">
               ✅ Grammar looks perfect!<br><br>
-              <span class="text-gray-300 text-sm">"${sentence}"</span>
+              <span class="text-gray-300 text-sm">"${textInput}"</span>
             </div>`;
         } else {
-          resultDiv.innerHTML = `
+          resultsSection.innerHTML = `
             <div class="p-4 bg-red-900/40 border border-red-600 rounded-xl text-red-300">
               ❌ Correction Suggested:<br><br>
-              <span class="text-gray-400">Original:</span> "${sentence}"<br>
+              <span class="text-gray-400">Original:</span> "${textInput}"<br>
               <span class="text-gray-400">Corrected:</span> <span class="text-green-300 font-semibold">"${corrected}"</span>
             </div>`;
         }
       } catch (err) {
         console.error(err);
-        resultDiv.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;
+        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;
       }
-    }
+    });
   </script>
 </body>
 </html>

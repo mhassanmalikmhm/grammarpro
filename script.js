@@ -22,109 +22,69 @@ tailwind.config = {
 };
 
 // ------------------------------------------------------------------
-// 2. API CONFIG (Use Cloudflare Worker instead of direct Hugging Face)
+// 2. API CONFIG (Use Vercel Serverless function instead of direct Hugging Face)
 // ------------------------------------------------------------------
-
-// ⚠️ Safe Mode (API key is stored in Cloudflare Worker)
-const WORKER_URL = "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/";
+const WORKER_URL = "/api/grammar"; // Serverless function route
 
 // ------------------------------------------------------------------
 // 3. MAIN SCRIPT
 // ------------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
-  const textInput = document.getElementById("text-input");
-  const wordCountDisplay = document.getElementById("word-count");
-  const clearButton = document.getElementById("clear-button");
+  const textInput = document.getElementById("text-input") || document.getElementById("sentenceInput");
   const checkButton = document.getElementById("check-button");
-  const loadingSpinner = document.querySelector(".flex.w-full.flex-col.items-center.gap-4.py-8");
-  const resultsSection = document.getElementById("results-section");
-
-  function updateWordCount() {
-    const text = textInput.value.trim();
-    const wordCount = text.length > 0 ? text.split(/\s+/).length : 0;
-    wordCountDisplay.textContent = `${wordCount}/300 words`;
-  }
-
-  function clearText() {
-    textInput.value = "";
-    updateWordCount();
-    resultsSection.innerHTML = "";
-    if (loadingSpinner) loadingSpinner.classList.add("hidden");
-  }
-
-  if (textInput) textInput.addEventListener("input", updateWordCount);
-  if (clearButton) clearButton.addEventListener("click", clearText);
+  const resultsSection = document.getElementById("results-section") || document.getElementById("result");
 
   if (checkButton) {
-    checkButton.addEventListener("click", () => {
+    checkButton.addEventListener("click", async () => {
       const text = textInput.value.trim();
       if (!text) {
         showError("Please enter some text to check.");
         return;
       }
-      queryGrammarModel(text);
+
+      resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
+      checkButton.disabled = true;
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+
+        if (!response.ok) throw new Error(`Request failed: ${response.statusText}`);
+        const result = await response.json();
+
+        const correctedText = result?.[0]?.generated_text || "No correction found.";
+
+        if (correctedText.trim() === text.trim()) {
+          resultsSection.innerHTML = `
+            <div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold">
+              ✅ Grammar looks perfect!<br><br>
+              <span class="text-gray-300 text-sm">"${text}"</span>
+            </div>`;
+        } else {
+          resultsSection.innerHTML = `
+            <div class="p-4 bg-red-900/40 border border-red-600 rounded-xl text-red-300">
+              ❌ Correction Suggested:<br><br>
+              <span class="text-gray-400">Original:</span> "${text}"<br>
+              <span class="text-gray-400">Corrected:</span> <span class="text-green-300 font-semibold">"${correctedText}"</span>
+            </div>`;
+        }
+      } catch (err) {
+        console.error(err);
+        showError(err.message || "Server connection failed. Try again later.");
+      } finally {
+        checkButton.disabled = false;
+      }
     });
   }
 
-  // --- Send request to Cloudflare Worker ---
-  async function queryGrammarModel(text) {
-    if (loadingSpinner) loadingSpinner.classList.remove("hidden");
-    resultsSection.innerHTML = "";
-    checkButton.disabled = true;
-
-    try {
-      const response = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: text }), // ✅ Proper JSON format
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      // ✅ Handle corrected text (for text generation models)
-      if (Array.isArray(result) && result[0]?.generated_text) {
-        const correctedText = result[0].generated_text;
-        resultsSection.innerHTML = `
-          <div class="w-full rounded-xl border border-success/50 bg-white dark:bg-gray-800 p-6 shadow-sm">
-            <h2 class="font-bold text-xl text-success mb-2">Corrected Text ✅</h2>
-            <p class="text-gray-700 dark:text-gray-300">${correctedText}</p>
-          </div>
-        `;
-        return;
-      }
-
-      // ⚠️ Handle unexpected responses
-      if (!result || typeof result !== "object") {
-        throw new Error("Invalid or empty response from API.");
-      }
-
-      resultsSection.innerHTML = `
-        <div class="w-full rounded-xl border border-warning/50 dark:border-warning/40 bg-white dark:bg-gray-800 p-6 shadow-sm">
-          <h3 class="font-bold text-base text-warning">Unexpected Response</h3>
-          <pre class="text-gray-600 dark:text-gray-300 text-sm mt-2">${JSON.stringify(result, null, 2)}</pre>
-        </div>
-      `;
-    } catch (error) {
-      console.error("Error:", error);
-      showError(error.message);
-    } finally {
-      if (loadingSpinner) loadingSpinner.classList.add("hidden");
-      checkButton.disabled = false;
-    }
-  }
-
-  // --- Error UI ---
   function showError(message) {
     resultsSection.innerHTML = `
       <div class="w-full rounded-xl border border-warning/50 dark:border-warning/40 bg-white dark:bg-gray-800 p-6 shadow-sm">
         <h3 class="font-bold text-base text-warning">An Error Occurred</h3>
         <p class="text-gray-600 dark:text-gray-300 text-sm mt-2">${message}</p>
-      </div>
-    `;
-    if (loadingSpinner) loadingSpinner.classList.add("hidden");
+      </div>`;
   }
 });
