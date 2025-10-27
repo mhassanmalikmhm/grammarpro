@@ -6,7 +6,15 @@
       "use": "@vercel/node"
     },
     {
-      "src": "**/*.html",
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.css", 
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.js",
       "use": "@vercel/static"
     }
   ],
@@ -14,7 +22,7 @@
     {
       "src": "/api/grammar",
       "dest": "/api/grammar.js",
-      "methods": ["POST", "GET", "OPTIONS"]
+      "methods": ["POST", "OPTIONS"]
     },
     {
       "src": "/(.*)",

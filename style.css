@@ -75,26 +75,3 @@ body {
     0% { transform: translate(0, 0); }
     100% { transform: translate(24px, 0); }
 }
-
-/* Result styles */
-.correct-text {
-    color: #00f5d4;
-    background-color: rgba(0, 245, 212, 0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-}
-
-.error-text {
-    color: #f72585;
-    background-color: rgba(247, 37, 133, 0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-    text-decoration: line-through;
-}
-
-.suggestion-text {
-    color: #ffd166;
-    background-color: rgba(255, 209, 102, 0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-}
