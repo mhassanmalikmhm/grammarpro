@@ -2,12 +2,15 @@
   "name": "grammar-checker",
   "version": "1.0.0",
   "description": "AI Grammar Checker using Hugging Face",
-  "main": "index.html",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
+    "start": "node server.js",
     "build": "echo 'No build process'"
   },
   "dependencies": {
-    "node-fetch": "^2.6.7"
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2"
   },
   "keywords": [
     "grammar",
