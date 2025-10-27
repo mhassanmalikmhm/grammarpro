@@ -6,46 +6,42 @@ document.addEventListener('DOMContentLoaded', function() {
     checkButton.addEventListener('click', checkGrammar);
 
     async function checkGrammar() {
-        const text = textInput.value.trim();
-        
-        if (!text) {
-            showResult('Please enter some text to check.', 'error');
-            return;
-        }
-
-        if (text.split(' ').length < 2) {
-            showResult('Please enter at least 2 words for better grammar checking.', 'error');
-            return;
-        }
-
-        // Show loading state
-        showLoading();
-
-        try {
-            const response = await fetch('/api/grammar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ text: text })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Something went wrong');
-            }
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            displayResults(data);
-        } catch (error) {
-            console.error('Error:', error);
-            showResult(`Error: ${error.message}`, 'error');
-        }
+    const text = textInput.value.trim();
+    
+    if (!text) {
+        showResult('Please enter some text to check.', 'error');
+        return;
     }
+
+    if (text.split(' ').length < 2) {
+        showResult('Please enter at least 2 words for better grammar checking.', 'error');
+        return;
+    }
+
+    // Show loading state
+    showLoading();
+
+    try {
+        const response = await fetch('/api/grammar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || `Server error: ${response.status}`);
+        }
+
+        displayResults(data);
+    } catch (error) {
+        console.error('Error:', error);
+        showResult(`Service temporarily unavailable. Please try again in a few moments.`, 'error');
+    }
+}
 
     function showLoading() {
         resultsSection.innerHTML = `

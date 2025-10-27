@@ -10,13 +10,11 @@ module.exports = async (req, res) => {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
-  // Handle OPTIONS request for CORS
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -34,9 +32,15 @@ module.exports = async (req, res) => {
 
     // Hugging Face API configuration
     const HF_API_TOKEN = process.env.HF_API_TOKEN;
+    
+    if (!HF_API_TOKEN) {
+      console.error('HF_API_TOKEN environment variable not set');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
     const HF_MODEL = "abdul-matin/omotuo-grammar-correction-v0.1";
 
-    console.log('Processing text:', text.substring(0, 50) + '...');
+    console.log('Calling Hugging Face API for text:', text.substring(0, 50) + '...');
 
     // Call Hugging Face API
     const response = await fetch(
@@ -51,13 +55,24 @@ module.exports = async (req, res) => {
       }
     );
 
+    const responseText = await response.text();
+    console.log('Hugging Face response status:', response.status);
+    console.log('Hugging Face response:', responseText.substring(0, 200));
+
     if (!response.ok) {
-      throw new Error(`Hugging Face API error: ${response.status}`);
+      throw new Error(`Hugging Face API error: ${response.status} - ${responseText}`);
     }
 
-    const hfResult = await response.json();
+    let hfResult;
+    try {
+      hfResult = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Invalid JSON response from API');
+    }
     
     if (!hfResult || !hfResult[0] || !hfResult[0].generated_text) {
+      console.error('Invalid response structure:', hfResult);
       throw new Error('Invalid response from grammar model');
     }
 
@@ -74,47 +89,18 @@ module.exports = async (req, res) => {
   } catch (error) {
     console.error('Grammar check error:', error);
     
-    // Fallback basic grammar correction if API fails
-    if (error.message.includes('Hugging Face API')) {
-      const fallbackCorrections = {
-        'i is': 'I am',
-        'you is': 'you are', 
-        'he are': 'he is',
-        'she are': 'she is',
-        'we is': 'we are',
-        'they is': 'they are',
-        'i has': 'I have',
-        'you has': 'you have',
-        'he have': 'he has',
-        'she have': 'she has'
-      };
-      
-      let correctedText = req.body.text;
-      Object.keys(fallbackCorrections).forEach(wrong => {
-        const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
-        correctedText = correctedText.replace(regex, fallbackCorrections[wrong]);
-      });
-      
-      return res.json({
-        original_text: req.body.text,
-        corrected_text: correctedText,
-        explanations: [],
-        confidence: 'low',
-        note: 'Using fallback correction'
-      });
-    } else {
-      return res.status(500).json({ 
-        error: 'Failed to check grammar. Please try again.' 
-      });
-    }
+    // Better error handling
+    return res.status(500).json({ 
+      error: 'Grammar check service is temporarily unavailable. Please try again in a few moments.' 
+    });
   }
 };
 
 function analyzeGrammarCorrection(original, corrected) {
   const explanations = [];
   
-  const originalWords = original.toLowerCase().split(/\s+/);
-  const correctedWords = corrected.toLowerCase().split(/\s+/);
+  const originalWords = original.split(/\s+/);
+  const correctedWords = corrected.split(/\s+/);
   
   let i = 0, j = 0;
   while (i < originalWords.length && j < correctedWords.length) {
@@ -133,31 +119,16 @@ function analyzeGrammarCorrection(original, corrected) {
 }
 
 function getGrammarExplanation(original, corrected) {
-  const verbAgreements = {
-    'is': 'are',
-    'are': 'is', 
-    'was': 'were',
-    'were': 'was',
-    'have': 'has',
-    'has': 'have',
-    'do': 'does',
-    'does': 'do'
+  const explanations = {
+    'is': 'Verb agreement correction',
+    'are': 'Verb agreement correction',
+    'was': 'Verb agreement correction', 
+    'were': 'Verb agreement correction',
+    'have': 'Verb agreement correction',
+    'has': 'Verb agreement correction',
+    'do': 'Verb agreement correction',
+    'does': 'Verb agreement correction'
   };
   
-  if (verbAgreements[original] === corrected) {
-    return 'Subject-verb agreement correction';
-  }
-  
-  const tenseCorrections = {
-    'go': 'went',
-    'see': 'saw',
-    'eat': 'ate',
-    'run': 'ran'
-  };
-  
-  if (tenseCorrections[original] === corrected) {
-    return 'Verb tense correction';
-  }
-  
-  return 'Grammar correction applied';
+  return explanations[original.toLowerCase()] || 'Grammar improvement applied';
 }
