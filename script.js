@@ -10,9 +10,10 @@ button.addEventListener("click", async () => {
 
     try {
         const response = await fetch("https://patient-bread-b2c0.mhmhassanmalik.workers.dev/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: sentence })
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ inputs: sentence }) // note 'inputs' key, jo Worker expect kar raha hai
+
         });
         const data = await response.json();
         const resultArray = data?.[0];
