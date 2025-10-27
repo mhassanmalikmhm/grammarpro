@@ -14,7 +14,7 @@ A beautiful and intelligent grammar checking tool powered by AI that helps you i
 
 ## 🚀 Live Demo
 
-Experience the grammar checker: [https://your-vercel-app.vercel.app](https://your-vercel-app.vercel.app)
+Experience the grammar checker: https://mhassanmalikmhm.github.io/grammarpro/
 
 ## 🛠️ Technology Stack
 
@@ -27,7 +27,7 @@ Experience the grammar checker: [https://your-vercel-app.vercel.app](https://you
 ## 📸 Screenshot
 
 <div align="center">
-  <img src="screenshot.png" alt="AI Grammar Checker Screenshot" width="800" />
+  <img src="new.pdf" alt="AI Grammar Checker Screenshot" width="800" />
 </div>
 
 ## 💻 How to Use
