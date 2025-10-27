@@ -1,12 +1,24 @@
 {
-  "name": "grammarpro",
+  "name": "grammar-checker",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
+  "description": "AI Grammar Checker using Hugging Face",
+  "main": "index.html",
   "scripts": {
-    "start": "vercel dev"
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'"
   },
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "vercel": "^28.16.0"
+  },
+  "keywords": [
+    "grammar",
+    "ai",
+    "huggingface",
+    "vercel"
+  ],
+  "author": "Hassan Malik",
+  "license": "MIT"
 }
