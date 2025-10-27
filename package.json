@@ -2,16 +2,12 @@
   "name": "grammar-checker",
   "version": "1.0.0",
   "description": "AI Grammar Checker using Hugging Face",
-  "main": "index.html",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'No build step required'"
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
-  },
-  "devDependencies": {
-    "vercel": "^28.16.0"
   },
   "keywords": [
     "grammar",
