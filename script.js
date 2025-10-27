@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resultsSection = document.getElementById("results");
 
     if (!form || !input || !resultsSection) {
-        console.error("Required HTML elements not found.");
+        console.error("Required DOM elements not found!");
         return;
     }
 
@@ -20,8 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text: sentence })
             });
-
-            if (!response.ok) throw new Error("Failed to fetch from server");
 
             const data = await response.json();
             const resultArray = data?.[0];
