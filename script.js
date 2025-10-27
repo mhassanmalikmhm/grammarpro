@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function displayResults(data) {
-        if (data.has_corrections) {
+        if (data.corrected_text && data.corrected_text !== data.original_text) {
             resultsSection.innerHTML = `
                 <div class="space-y-4 py-2">
                     <div>
