@@ -9,11 +9,11 @@ form.addEventListener("submit", async (e) => {
     if (!sentence) return;
 
     try {
-        const response = await fetch("/api/grammar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: sentence })
-        });
+        const response = await fetch("https://patient-bread-b2c0.mhmhassanmalik.workers.dev/", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: sentence })
+});
 
         const data = await response.json();
         const resultArray = data?.[0];
