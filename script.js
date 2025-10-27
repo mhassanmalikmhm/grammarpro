@@ -1,36 +1,26 @@
-// script.js
+const form = document.getElementById("grammar-form");
+const input = document.getElementById("sentence");
+const resultsSection = document.getElementById("results");
 
-document.getElementById("check-button").addEventListener("click", async () => {
-    const textInput = document.getElementById("text-input").value.trim();
-    const resultsSection = document.getElementById("results-section");
-
-    // Agar input empty hai
-    if (!textInput) {
-        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
-        return;
-    }
-
-    // Loading message
-    resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold">Checking...</p>`;
+    const sentence = input.value.trim();
+    if (!sentence) return;
 
     try {
-        // Server ko POST request bhejna
-        const res = await fetch("/api/grammar", {
+        const response = await fetch("/api/grammar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: textInput }),
+            body: JSON.stringify({ text: sentence })
         });
 
-        const data = await res.json();
-
-        // HF API se aaya response array
-        const resultArray = data?.[0]; // ye array of objects
+        const data = await response.json();
+        const resultArray = data?.[0];
         if (!resultArray || !Array.isArray(resultArray)) throw new Error("Invalid response");
 
-        // LABEL_1 ka matlab correct grammar
         const correctLabel = resultArray.find(item => item.label === "LABEL_1") ? "LABEL_1" : "LABEL_0";
 
-        // Result show karna
         if (correctLabel === "LABEL_1") {
             resultsSection.innerHTML = `
                 <div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold text-center">
@@ -42,7 +32,6 @@ document.getElementById("check-button").addEventListener("click", async () => {
                     ❌ Grammar needs correction!
                 </div>`;
         }
-
     } catch (err) {
         console.error(err);
         resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;

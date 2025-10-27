@@ -1,35 +1,27 @@
-import fetch from "node-fetch";
 import express from "express";
+import fetch from "node-fetch";
 
 const router = express.Router();
-const HF_TOKEN = process.env.HF_API_TOKEN; // Make sure this matches your environment variable
 
 router.post("/", async (req, res) => {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: "No text provided" });
+
     try {
-        const text = req.body.text;
-        if (!text) return res.status(400).json({ error: "No text provided" });
+        // Cloudflare Worker URL (aapka proxy URL)
+        const CF_PROXY_URL = "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/";
 
-        console.log("Sending to HF API:", text);
-
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/abdulmatinomotoso/English_Grammar_Checker",
-            {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${HF_TOKEN}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ inputs: text }),
-            }
-        );
+        const response = await fetch(CF_PROXY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text })
+        });
 
         const data = await response.json();
-        console.log("HF API response:", data);
-
         res.json(data);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "HF API request failed" });
+        res.status(500).json({ error: "Failed to fetch from HF API" });
     }
 });
 
