@@ -1,78 +1,58 @@
-// ------------------------------------------------------------------
-// 1. TAILWIND CONFIG
-// ------------------------------------------------------------------
+// Tailwind config (can stay in script.js)
 tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        primary: "#00f5d4",
-        secondary: "#f72585",
-        accent: "#e0aaff",
-        "background-dark": "#120c18",
-      },
-      fontFamily: { display: ["Poppins", "sans-serif"] },
-      borderRadius: { DEFAULT: "1rem" },
-    },
-  },
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                primary: "#00f5d4",
+                secondary: "#f72585",
+                accent: "#e0aaff",
+                "background-dark": "#120c18",
+            },
+            fontFamily: { display: ["Poppins", "sans-serif"] },
+            borderRadius: { DEFAULT: "1rem" },
+            animation: { 'gradient-x':'gradient-x 15s ease infinite' },
+            keyframes: {
+                'gradient-x': {
+                    '0%, 100%': { 'background-size':'200% 200%', 'background-position': 'left center' },
+                    '50%': { 'background-size':'200% 200%', 'background-position': 'right center' }
+                }
+            }
+        }
+    }
 };
 
-// ------------------------------------------------------------------
-// 2. API CONFIG
-// ------------------------------------------------------------------
-const WORKER_URL = "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/";
+// Button click event
+document.getElementById("check-button").addEventListener("click", async () => {
+    const textInput = document.getElementById("text-input").value.trim();
+    const resultsSection = document.getElementById("results-section");
 
-// ------------------------------------------------------------------
-// 3. MAIN SCRIPT
-// ------------------------------------------------------------------
-window.addEventListener("DOMContentLoaded", () => {
-  const textInput = document.getElementById("text-input");
-  const checkButton = document.getElementById("check-button");
-  const resultsSection = document.getElementById("results-section");
-
-  checkButton.addEventListener("click", async () => {
-    const text = textInput.value.trim();
-
-    if (!text) {
-      resultsSection.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
-      return;
+    if (!textInput) {
+        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">⚠️ Please enter a sentence first.</p>`;
+        return;
     }
 
-    resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar...</p>`;
-    checkButton.disabled = true;
+    resultsSection.innerHTML = `<p class="text-yellow-400 font-semibold animate-pulse">⏳ Checking grammar... please wait.</p>`;
 
     try {
-      const res = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: text }) // "inputs" key must match Worker
-      });
+        const res = await fetch("/api/grammar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: textInput }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
+        const label = data?.[0]?.label;
 
-      // data ka structure: [{ label: "LABEL_0", score: 0.99 }, ...]
-      if (!Array.isArray(data) || !data[0]?.label) {
-        resultsSection.innerHTML = `<p class="text-warning">No output from model</p>`;
-      } else {
-        const label = data[0].label;
+        if (!label) throw new Error("Invalid response from model");
+
         if (label === "LABEL_1") {
-          resultsSection.innerHTML = `
-            <div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold text-center">
-              ✅ Grammar looks perfect!
-            </div>`;
+            resultsSection.innerHTML = `<div class="p-4 bg-green-900/40 border border-green-600 rounded-xl text-green-300 font-semibold text-center">✅ Grammar looks perfect!</div>`;
         } else {
-          resultsSection.innerHTML = `
-            <div class="p-4 bg-red-900/40 border border-red-600 rounded-xl text-red-300 font-semibold text-center">
-              ❌ Grammar incorrect!
-            </div>`;
+            resultsSection.innerHTML = `<div class="p-4 bg-red-900/40 border border-red-600 rounded-xl text-red-300 font-semibold text-center">❌ Grammar incorrect!</div>`;
         }
-      }
-
     } catch (err) {
-      console.error(err);
-      resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;
-    } finally {
-      checkButton.disabled = false; // ensure button is always re-enabled
+        console.error(err);
+        resultsSection.innerHTML = `<p class="text-red-400 font-semibold">🚫 Server connection failed. Try again later.</p>`;
     }
-  });
 });

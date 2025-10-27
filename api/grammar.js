@@ -1,24 +1,33 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
+// api/grammar.js
+import express from "express";
+import fetch from "node-fetch"; // npm install node-fetch
 
-  const text = req.body.text || req.body.inputs; // dono check
-  if (!text) return res.status(400).json({ error: "No text provided" });
+const router = express.Router();
 
-  try {
-    const response = await fetch(
-      "https://patient-bread-b2c0.mhmhassanmalik.workers.dev/",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: text }) // inputs key hi Worker expect karta hai
-      }
-    );
+// Make sure to set your Hugging Face token in environment variables
+const HF_TOKEN = process.env.HF_TOKEN;
 
-    const data = await response.json();
-    return res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server connection failed. show results." });
-  }
-}
+router.post("/", async (req, res) => {
+    try {
+        const { text } = req.body;
+
+        if (!text) return res.status(400).json({ error: "Text is required" });
+
+        const response = await fetch("https://api-inference.huggingface.co/models/abdulmatinomotoso/English_Grammar_Checker", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${HF_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ inputs: text }),
+        });
+
+        const data = await response.json();
+        res.json(data);
+    } catch (err) {
+        console.error("HF API Error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+export default router;
