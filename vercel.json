@@ -19,8 +19,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "HF_API_TOKEN": "@hf_api_token"
-  }
+  ]
 }
